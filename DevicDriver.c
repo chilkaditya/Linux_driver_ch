@@ -51,13 +51,13 @@ static int vi_release(struct inode *inode,struct file *file)
 
 static ssize_t vi_read(struct file *filp, char __user *buf, size_t len, loff_t *off)
 {
-        pr_info("Read Function\n");
+        printk("Read Function\n");
         return 0;
 }
 
 static ssize_t vi_write(struct file *filp, const char __user *buf, size_t len, loff_t *off)
 {
-        pr_info("Write function\n");
+        printk("Write function\n");
         return len;
 }
 
@@ -68,7 +68,10 @@ static long vi_ioctl(struct file *file,unsigned int cmd,unsigned long arg)
 		case SET_SIZE_OF_QUEUE:
 			// Implementation goes here
 			int size;
+			// getting the size from user space
 			if(copy_from_user(&size,(int __user*)arg,sizeof(size))) return -1;
+
+			//some checks for better performance
 			if(size < 0) return -EINVAL;
 			if(queue_buffer)
 			{
@@ -77,6 +80,7 @@ static long vi_ioctl(struct file *file,unsigned int cmd,unsigned long arg)
 				queue_size = 0;
 				front = rear = count = 0;
 			}
+			// assigning the memory to queue buffer dynamically
 			queue_buffer = kmalloc(size,GFP_KERNEL);
 			if(!queue_buffer) return -ENOMEM;
 
@@ -88,18 +92,20 @@ static long vi_ioctl(struct file *file,unsigned int cmd,unsigned long arg)
 			// Implementation goes here
 			struct data input;
 			char *buff;
-			// copy structure from user
+			// copying structure from user space
 			if(copy_from_user(&input,(struct data __user*)arg,sizeof(struct data))) return -1;
 			if(input.size <= 0 || input.size > queue_size) return -EINVAL;
 
 			buff = kmalloc(input.size,GFP_KERNEL);
 			if(!buff) return -ENOMEM;
-			// copy the data from user
+			// copying the data from user space
 			if(copy_from_user(buff,input.val,input.size))
 			{
 				kfree(buff);
 				return -EFAULT;
 			}
+
+			//pushing the data to the queue
 			for(int i=0;i<input.size;i++)
 			{
 				queue_buffer[rear] = buff[i];
@@ -115,7 +121,7 @@ static long vi_ioctl(struct file *file,unsigned int cmd,unsigned long arg)
 			// Implementation goes here
 			struct data input_data;
                         char *temp_buff;
-                        // copy structure from user
+                        // copying structure from user space
                         if(copy_from_user(&input_data,(struct data __user*)arg,sizeof(struct data))) return -1;
                         if(input_data.size <= 0 || input_data.size > queue_size) return -EINVAL;
 
@@ -134,6 +140,8 @@ static long vi_ioctl(struct file *file,unsigned int cmd,unsigned long arg)
 				front = (front+1) % queue_size;
 				count--;
 			}
+
+			//copying the value to user space from kernel space
 			if(copy_to_user(input_data.val,temp_buff,input_data.size))
 			{
 				kfree(temp_buff);

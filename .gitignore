@@ -1,0 +1,5 @@
+*
+*.mod.c
+!*.c
+!Makefile
+!.gitignore
