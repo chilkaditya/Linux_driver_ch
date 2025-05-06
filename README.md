@@ -2,6 +2,8 @@
 
 A Linux kernel module that implements a dynamic circular queue accessed via a character device using IOCTL calls. This module supports dynamic resizing, and blocking read operations — perfect for inter-process communication (IPC)-like behavior.
 
+Demo video - https://drive.google.com/file/d/15f8KXWZnLvYJ2LfgWiKxB-4E2KYvk6a_/view?usp=sharing
+
 ---
 
 ## 📖 About
